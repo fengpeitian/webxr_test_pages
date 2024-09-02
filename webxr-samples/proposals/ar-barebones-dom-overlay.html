@@ -130,16 +130,13 @@ see the xr-barebones example for more information on that.
         });
 		
 		// build shader
-	      console.log('1');
 		shaderProgram = buildShader(gl);
-		console.log('2');
+		// prepare image
 	  	const image = new Image();  
 	  	image.crossOrigin = 'anonymous'; 
 	  	image.src = 'https://avatars.githubusercontent.com/u/25522783';  
 	  	image.onload = function() {  
-			console.log('3');
 	  		target_image = image;
-			console.log('4');
 	  	};
       }
 
@@ -170,35 +167,48 @@ see the xr-barebones example for more information on that.
           // Update the clear color so that we can observe the color in the
           // headset changing over time. Use a scissor rectangle to keep the AR
           // scene visible.
+		  gl.enable(gl.SCISSOR_TEST);
           const width = session.renderState.baseLayer.framebufferWidth;
           const height = session.renderState.baseLayer.framebufferHeight;
-          gl.enable(gl.SCISSOR_TEST);
           gl.scissor(width / 4, height / 4, width / 2, height / 2);
-	  let time = Date.now();
-          gl.clearColor(Math.cos(time / 2000), Math.cos(time / 4000), Math.cos(time / 6000), 0.5);  
-          gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	
-          if(target_image != null && shaderProgram != null) {	  
-            // 绑定纹理
-	    const texture = gl.createTexture();  
-	    gl.bindTexture(gl.TEXTURE_2D, texture);  
-
-	    // 设置纹理参数  
-	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);  
-	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);  
-	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);  
-
-            console.log('5');
-	    // 加载图片到纹理  
-	    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, target_image);  
-
-	    // 获取uniform位置  
-	    const u_sampler = gl.getUniformLocation(shaderProgram, 'u_sampler');  
-	    gl.uniform1i(u_sampler, 0); // 纹理单元0 
+		  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		  
+		  if(shaderProgram != null && target_image != null) {
+			  // 应用着色器
+	          gl.useProgram(shaderProgram); 
 			  
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); 
-	    console.log('6');
-          } 
+	          // 创建缓冲区
+	          const vertexBuffer = gl.createBuffer();
+	          gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+	          gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+	
+	          // 获取属性位置，启用顶点属性
+	          const a_position = gl.getAttribLocation(shaderProgram, 'a_position');
+	          gl.enableVertexAttribArray(a_position);
+	          gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0);
+			
+	          const a_texCoord = gl.getAttribLocation(shaderProgram, 'a_texCoord');
+	          gl.enableVertexAttribArray(a_texCoord);
+	          gl.vertexAttribPointer(a_texCoord, 2, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 2 * Float32Array.BYTES_PER_ELEMENT);
+	
+			  // 绑定纹理
+	          const texture = gl.createTexture();  
+	          gl.bindTexture(gl.TEXTURE_2D, texture);  
+
+	          // 设置纹理参数  
+	          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);  
+	          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);  
+	          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);  
+
+	          // 加载图片到纹理  
+	          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, target_image);  
+
+	          // 获取uniform位置  
+	          const u_sampler = gl.getUniformLocation(shaderProgram, 'u_sampler');  
+	          gl.uniform1i(u_sampler, 0); // 纹理单元0 
+			  
+			  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); 
+		  }  
         }
       }
 	  
@@ -255,25 +265,9 @@ see the xr-barebones example for more information on that.
 	  	gl.linkProgram(shaderProgram);  
 	  	if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {  
 	  	    console.error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));  
-	  	    return;  
+	  	    return null;  
 	  	}  
-	  	gl.useProgram(shaderProgram); 
-	
-	  	// 获取属性位置
-	  	const a_position = gl.getAttribLocation(shaderProgram, 'a_position');
-	  	const a_texCoord = gl.getAttribLocation(shaderProgram, 'a_texCoord');
-	
-	  	// 创建缓冲区
-	  	const vertexBuffer = gl.createBuffer();
-	  	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-	  	gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-	  	// 启用顶点属性
-	  	gl.enableVertexAttribArray(a_position);
-	  	gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0);
-	  	gl.enableVertexAttribArray(a_texCoord);
-	  	gl.vertexAttribPointer(a_texCoord, 2, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 2 * Float32Array.BYTES_PER_ELEMENT);
-	
+	  	
 	  	return shaderProgram;
 	  }
 
