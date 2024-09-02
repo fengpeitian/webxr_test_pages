@@ -156,6 +156,15 @@ see the xr-barebones example for more information on that.
         gl = null;
       }
 
+      // 顶点数据(x,y,s,t)
+      // ***** 在WebGL中，Y轴的正方向是向下的 *****
+      const vertices = new Float32Array([
+        -1.0, 1.0, 0.0, 0.0,  
+        1.0, 1.0, 1.0, 0.0,  
+        -1.0,  -1.0, 0.0, 1.0,  
+        1.0,  -1.0, 1.0, 1.0,
+      ]);
+
       function onXRFrame(t, frame) {
         let session = frame.session;
         session.requestAnimationFrame(onXRFrame);
@@ -245,15 +254,6 @@ see the xr-barebones example for more information on that.
 	          gl_FragColor = texture2D(u_sampler, v_texCoord);  
 	      }  
 	  `;  
-
-	  // 顶点数据(x,y,s,t)
-	  // ***** 在WebGL中，Y轴的正方向是向下的 *****
-	  const vertices = new Float32Array([
-	  		-1.0, 1.0, 0.0, 0.0,  
-	           1.0, 1.0, 1.0, 0.0,  
-	          -1.0,  -1.0, 0.0, 1.0,  
-	           1.0,  -1.0, 1.0, 1.0,
-	  ]);
 
 	  // 创建着色器程序
 	  function buildShader(gl) {
