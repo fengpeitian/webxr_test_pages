@@ -68,6 +68,8 @@ see the xr-barebones example for more information on that.
 
       // WebGL scene globals.
       let gl = null;
+	  let shaderProgram = null;
+	  let target_image = null;
 
       function checkSupportedState() {
         navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
@@ -98,6 +100,7 @@ see the xr-barebones example for more information on that.
         if (!xrSession) {
             // Ask for an optional DOM Overlay, see https://immersive-web.github.io/dom-overlays/
             // Use BODY as the root element.
+			
             navigator.xr.requestSession('immersive-ar', {
                 optionalFeatures: ['dom-overlay'],
                 domOverlay: {root: document.body}
@@ -116,6 +119,7 @@ see the xr-barebones example for more information on that.
 
         session.addEventListener('end', onSessionEnded);
         let canvas = document.createElement('canvas');
+		
         gl = canvas.getContext('webgl', {
           xrCompatible: true
         });
@@ -124,6 +128,16 @@ see the xr-barebones example for more information on that.
           xrRefSpace = refSpace;
           session.requestAnimationFrame(onXRFrame);
         });
+		
+		// build shader
+		shaderProgram = buildShader(gl);
+		
+	  	const image = new Image();  
+	  	image.crossOrigin = 'anonymous'; 
+	  	image.src = 'https://avatars.githubusercontent.com/u/25522783';  
+	  	image.onload = function() {  
+	  		target_image = image;
+	  	};
       }
 
       function onRequestSessionError(ex) {
@@ -157,11 +171,105 @@ see the xr-barebones example for more information on that.
           const height = session.renderState.baseLayer.framebufferHeight;
           gl.enable(gl.SCISSOR_TEST);
           gl.scissor(width / 4, height / 4, width / 2, height / 2);
-          let time = Date.now();
-          gl.clearColor(Math.cos(time / 2000), Math.cos(time / 4000), Math.cos(time / 6000), 0.5);
+		  
+		  if(target_image != null && shaderProgram != null) {
+			  // 绑定纹理
+	          const texture = gl.createTexture();  
+	          gl.bindTexture(gl.TEXTURE_2D, texture);  
+
+	          // 设置纹理参数  
+	          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);  
+	          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);  
+	          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);  
+
+	          // 加载图片到纹理  
+	          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, target_image);  
+
+	          // 获取uniform位置  
+	          const u_sampler = gl.getUniformLocation(shaderProgram, 'u_sampler');  
+	          gl.uniform1i(u_sampler, 0); // 纹理单元0 
+			  
+			  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); 
+		  } 
+		  
           gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         }
       }
+	  
+	  // 编译着色器  
+	  function createShader(gl, type, source) {  
+	      const shader = gl.createShader(type);  
+	      gl.shaderSource(shader, source);  
+	      gl.compileShader(shader);  
+	      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {  
+	          console.error('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));  
+	          gl.deleteShader(shader);  
+	          return null;  
+	      }  
+	      return shader;  
+	  }  
+
+	  // 顶点着色器代码  
+	  const vsSource = `  
+	      attribute vec2 a_position;  
+	      attribute vec2 a_texCoord;  
+	      varying vec2 v_texCoord;  
+	      void main() {  
+	          gl_Position = vec4(a_position, 0, 1);  
+	          v_texCoord = a_texCoord;  
+	      }  
+	  `;  
+  
+	  // 片元着色器代码  
+	  const fsSource = `  
+	      precision mediump float;  
+	      uniform sampler2D u_sampler;  
+	      varying vec2 v_texCoord;  
+	      void main() {  
+	          gl_FragColor = texture2D(u_sampler, v_texCoord);  
+	      }  
+	  `;  
+
+	  // 顶点数据(x,y,s,t)
+	  // ***** 在WebGL中，Y轴的正方向是向下的 *****
+	  const vertices = new Float32Array([
+	  		-1.0, 1.0, 0.0, 0.0,  
+	           1.0, 1.0, 1.0, 0.0,  
+	          -1.0,  -1.0, 0.0, 1.0,  
+	           1.0,  -1.0, 1.0, 1.0,
+	  ]);
+
+	  // 创建着色器程序
+	  function buildShader(gl) {
+	  	const vertexShader = createShader(gl, gl.VERTEX_SHADER, vsSource);  
+	  	const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);  
+	  	const shaderProgram = gl.createProgram();  
+	  	gl.attachShader(shaderProgram, vertexShader);  
+	  	gl.attachShader(shaderProgram, fragmentShader);  
+	  	gl.linkProgram(shaderProgram);  
+	  	if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {  
+	  	    console.error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));  
+	  	    return;  
+	  	}  
+	  	gl.useProgram(shaderProgram); 
+	
+	  	// 获取属性位置
+	  	const a_position = gl.getAttribLocation(shaderProgram, 'a_position');
+	  	const a_texCoord = gl.getAttribLocation(shaderProgram, 'a_texCoord');
+	
+	  	// 创建缓冲区
+	  	const vertexBuffer = gl.createBuffer();
+	  	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+	  	gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+	  	// 启用顶点属性
+	  	gl.enableVertexAttribArray(a_position);
+	  	gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0);
+	  	gl.enableVertexAttribArray(a_texCoord);
+	  	gl.vertexAttribPointer(a_texCoord, 2, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 2 * Float32Array.BYTES_PER_ELEMENT);
+	
+	  	return shaderProgram;
+	  }
 
       initXR();
     </script>
