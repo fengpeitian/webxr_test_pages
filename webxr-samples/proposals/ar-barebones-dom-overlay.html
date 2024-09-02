@@ -130,13 +130,16 @@ see the xr-barebones example for more information on that.
         });
 		
 		// build shader
+	      console.log('1');
 		shaderProgram = buildShader(gl);
-		
+		console.log('2');
 	  	const image = new Image();  
 	  	image.crossOrigin = 'anonymous'; 
 	  	image.src = 'https://avatars.githubusercontent.com/u/25522783';  
 	  	image.onload = function() {  
+			console.log('3');
 	  		target_image = image;
+			console.log('4');
 	  	};
       }
 
@@ -171,8 +174,10 @@ see the xr-barebones example for more information on that.
           const height = session.renderState.baseLayer.framebufferHeight;
           gl.enable(gl.SCISSOR_TEST);
           gl.scissor(width / 4, height / 4, width / 2, height / 2);
-		  
+
+		console.log('5');
 		  if(target_image != null && shaderProgram != null) {
+			  console.log('6');
 			  // 绑定纹理
 	          const texture = gl.createTexture();  
 	          gl.bindTexture(gl.TEXTURE_2D, texture);  
