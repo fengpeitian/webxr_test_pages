@@ -174,10 +174,12 @@ see the xr-barebones example for more information on that.
           const height = session.renderState.baseLayer.framebufferHeight;
           gl.enable(gl.SCISSOR_TEST);
           gl.scissor(width / 4, height / 4, width / 2, height / 2);
-
-		console.log('5');
+	  //let time = Date.now();
+          //gl.clearColor(Math.cos(time / 2000), Math.cos(time / 4000), Math.cos(time / 6000), 0.5);  
+          gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	
 		  if(target_image != null && shaderProgram != null) {
-			  console.log('6');
+			  
 			  // 绑定纹理
 	          const texture = gl.createTexture();  
 	          gl.bindTexture(gl.TEXTURE_2D, texture);  
@@ -196,9 +198,7 @@ see the xr-barebones example for more information on that.
 			  
 			  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); 
 		  } 
-	let time = Date.now();
-          gl.clearColor(Math.cos(time / 2000), Math.cos(time / 4000), Math.cos(time / 6000), 0.5);  
-          gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
         }
       }
 	  
