@@ -174,31 +174,31 @@ see the xr-barebones example for more information on that.
           const height = session.renderState.baseLayer.framebufferHeight;
           gl.enable(gl.SCISSOR_TEST);
           gl.scissor(width / 4, height / 4, width / 2, height / 2);
-	  //let time = Date.now();
-          //gl.clearColor(Math.cos(time / 2000), Math.cos(time / 4000), Math.cos(time / 6000), 0.5);  
+	  let time = Date.now();
+          gl.clearColor(Math.cos(time / 2000), Math.cos(time / 4000), Math.cos(time / 6000), 0.5);  
           gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	
-		  if(target_image != null && shaderProgram != null) {
+          if(target_image != null && shaderProgram != null) {	  
+            // 绑定纹理
+	    const texture = gl.createTexture();  
+	    gl.bindTexture(gl.TEXTURE_2D, texture);  
+
+	    // 设置纹理参数  
+	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);  
+	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);  
+	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);  
+
+            console.log('5');
+	    // 加载图片到纹理  
+	    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, target_image);  
+
+	    // 获取uniform位置  
+	    const u_sampler = gl.getUniformLocation(shaderProgram, 'u_sampler');  
+	    gl.uniform1i(u_sampler, 0); // 纹理单元0 
 			  
-			  // 绑定纹理
-	          const texture = gl.createTexture();  
-	          gl.bindTexture(gl.TEXTURE_2D, texture);  
-
-	          // 设置纹理参数  
-	          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);  
-	          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);  
-	          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);  
-
-	          // 加载图片到纹理  
-	          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, target_image);  
-
-	          // 获取uniform位置  
-	          const u_sampler = gl.getUniformLocation(shaderProgram, 'u_sampler');  
-	          gl.uniform1i(u_sampler, 0); // 纹理单元0 
-			  
-			  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); 
-		  } 
-
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); 
+	    console.log('6');
+          } 
         }
       }
 	  
