@@ -176,11 +176,12 @@ see the xr-barebones example for more information on that.
           // Update the clear color so that we can observe the color in the
           // headset changing over time. Use a scissor rectangle to keep the AR
           // scene visible.
-		  gl.enable(gl.SCISSOR_TEST);
+		  //gl.enable(gl.SCISSOR_TEST);
           const width = session.renderState.baseLayer.framebufferWidth;
           const height = session.renderState.baseLayer.framebufferHeight;
-          gl.scissor(width / 4, height / 4, width / 2, height / 2);
-		  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+          //gl.scissor(width / 4, height / 4, width / 2, height / 2);
+		gl.viewport(0, 0, width, height); // 设置视口  
+        gl.clear(gl.DEPTH_BUFFER_BIT);
 		  
 		  if(shaderProgram != null && target_image != null) {
 			  // 应用着色器
