@@ -107,7 +107,7 @@ see the xr-barebones example for more information on that.
             // Use BODY as the root element.
 			
             navigator.xr.requestSession('immersive-ar', {
-                optionalFeatures: ['dom-overlay'],
+                requiredFeatures: ['dom-overlay'],
                 domOverlay: {root: document.getElementById("my_overlay")}
             }).then(onSessionStarted, onRequestSessionError);
         } else {
@@ -120,7 +120,7 @@ see the xr-barebones example for more information on that.
         xrButton.innerHTML = 'Exit AR';
 
         // Show which type of DOM Overlay got enabled (if any)
-        document.getElementById('session-info').innerHTML = 'DOM Overlay type: ' + session.domOverlayState.type;
+        document.getElementById('session-info').innerHTML = 'DOM Overlay type: ' + 'screen';//session.domOverlayState.type;
 
         session.addEventListener('end', onSessionEnded);
 
@@ -180,13 +180,15 @@ see the xr-barebones example for more information on that.
 		// Update the clear color so that we can observe the color in the
 		// headset changing over time. Use a scissor rectangle to keep the AR
 		// scene visible.
-		
 		const width = session.renderState.baseLayer.framebufferWidth;
 		const height = session.renderState.baseLayer.framebufferHeight;
 		gl.enable(gl.SCISSOR_TEST);
 		gl.scissor(width / 4, height / 4, width / 2, height / 2);
-		 
-		gl.clear(gl.DEPTH_BUFFER_BIT);
+
+		let time = Date.now();
+  		gl.clearColor(Math.cos(time / 2000), Math.cos(time / 4000), Math.cos(time / 6000), 0.5);
+		
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 		let flag = false;
 		if(shaderProgram != null && target_image != null && flag) {
