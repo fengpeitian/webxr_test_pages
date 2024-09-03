@@ -39,33 +39,14 @@ see the xr-barebones example for more information on that.
           font-weight: bold;
           font-family: monospace;
       }
-	body {
-            margin:0;
-        }
-        .video-container {  
-            position: relative;  
-            width: 100%;
-            padding-top: 56.25%;
-            overflow: hidden;  
-        }  
-        .video-container iframe {  
-            position: absolute;  
-            top: 0;  
-            left: 0;  
-            width: 100%;  
-            height: 100%;  
-            border: 0;  
-        }
+      body {
+          margin:0;
+      }
     </style>
   </head>
   <body>
-
-    <div id='my_overlay' class="video-container">  
-      <!-- 使用iframe嵌入YouTube视频 -->  
-	    <img src='https://avatars.githubusercontent.com/u/25522783' alt="test icon">
-    </div>
-
-    <div>
+    <img id='my_overlay' src='https://avatars.githubusercontent.com/u/25522783' alt='test image' width='460' height='460'>
+    <header>
       <details open>
         <summary>Barebones WebXR DOM Overlay</summary>
         <p>
@@ -79,7 +60,7 @@ see the xr-barebones example for more information on that.
         <div id="warning-zone"></div>
         <button id="xr-button" class="barebones-button" disabled>XR not found</button>
       </details>
-    </div>
+    </header>
     
     <main style='text-align: center;'>
       <p>Click 'Enter AR' to see content</p>
@@ -153,15 +134,15 @@ see the xr-barebones example for more information on that.
           session.requestAnimationFrame(onXRFrame);
         });
 		
-		// build shader
-		shaderProgram = buildShader(gl);
-		// prepare image
-	  	const image = new Image();  
-	  	image.crossOrigin = 'anonymous'; 
-	  	image.src = 'https://avatars.githubusercontent.com/u/25522783';  
-	  	image.onload = function() {  
-	  		target_image = image;
-	  	};
+	// build shader
+	shaderProgram = buildShader(gl);
+	// prepare image
+	const image = new Image();  
+	image.crossOrigin = 'anonymous'; 
+	image.src = 'https://avatars.githubusercontent.com/u/25522783';  
+	image.onload = function() {  
+          target_image = image;
+	};
       }
 
       function onRequestSessionError(ex) {
@@ -196,54 +177,6 @@ see the xr-barebones example for more information on that.
 
         if (pose) {
           gl.bindFramebuffer(gl.FRAMEBUFFER, session.renderState.baseLayer.framebuffer);
-
-          // Update the clear color so that we can observe the color in the
-          // headset changing over time. Use a scissor rectangle to keep the AR
-          // scene visible.
-		  //gl.enable(gl.SCISSOR_TEST);
-          const width = session.renderState.baseLayer.framebufferWidth;
-          const height = session.renderState.baseLayer.framebufferHeight;
-          //gl.scissor(width / 4, height / 4, width / 2, height / 2);
-		//gl.viewport(0, 0, width, height); // 设置视口  
-        gl.clear(gl.DEPTH_BUFFER_BIT);
-
-		let flag = false;
-		  if(shaderProgram != null && target_image != null && flag) {
-			  // 应用着色器
-	          gl.useProgram(shaderProgram); 
-			  
-	          // 创建缓冲区
-	          const vertexBuffer = gl.createBuffer();
-	          gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-	          gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-	
-	          // 获取属性位置，启用顶点属性
-	          const a_position = gl.getAttribLocation(shaderProgram, 'a_position');
-	          gl.enableVertexAttribArray(a_position);
-	          gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0);
-			
-	          const a_texCoord = gl.getAttribLocation(shaderProgram, 'a_texCoord');
-	          gl.enableVertexAttribArray(a_texCoord);
-	          gl.vertexAttribPointer(a_texCoord, 2, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 2 * Float32Array.BYTES_PER_ELEMENT);
-	
-			  // 绑定纹理
-	          const texture = gl.createTexture();  
-	          gl.bindTexture(gl.TEXTURE_2D, texture);  
-
-	          // 设置纹理参数  
-	          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);  
-	          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);  
-	          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);  
-
-	          // 加载图片到纹理  
-	          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, target_image);  
-
-	          // 获取uniform位置  
-	          const u_sampler = gl.getUniformLocation(shaderProgram, 'u_sampler');  
-	          gl.uniform1i(u_sampler, 0); // 纹理单元0 
-			  
-			  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); 
-		  }  
         }
       }
 	  
