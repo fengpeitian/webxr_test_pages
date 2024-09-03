@@ -120,7 +120,7 @@ see the xr-barebones example for more information on that.
         xrButton.innerHTML = 'Exit AR';
 
         // Show which type of DOM Overlay got enabled (if any)
-        document.getElementById('session-info').innerHTML = 'DOM Overlay type: ' + session.domOverlayState.type;
+        document.getElementById('session-info').innerHTML = 'DOM Overlay type: ' + 'screen';//session.domOverlayState.type;
 
         session.addEventListener('end', onSessionEnded);
 
