@@ -107,7 +107,7 @@ see the xr-barebones example for more information on that.
             // Use BODY as the root element.
 			
             navigator.xr.requestSession('immersive-ar', {
-                optionalFeatures: ['dom-overlay'],
+                requiredFeatures: ['dom-overlay'],
                 domOverlay: {root: document.getElementById("my_overlay")}
             }).then(onSessionStarted, onRequestSessionError);
         } else {
