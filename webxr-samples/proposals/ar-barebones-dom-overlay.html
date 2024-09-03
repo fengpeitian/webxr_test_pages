@@ -123,7 +123,26 @@ see the xr-barebones example for more information on that.
         document.getElementById('session-info').innerHTML = 'DOM Overlay type: ' + session.domOverlayState.type;
 
         session.addEventListener('end', onSessionEnded);
-        
+
+	let canvas = document.createElement('canvas');	
+	gl = canvas.getContext('webgl', {
+		xrCompatible: true
+	});
+	session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl) });
+	session.requestReferenceSpace('local').then((refSpace) => {
+		xrRefSpace = refSpace;
+		session.requestAnimationFrame(onXRFrame);
+	});
+			
+	// build shader
+	shaderProgram = buildShader(gl);
+	// prepare image
+	const image = new Image();  
+	image.crossOrigin = 'anonymous'; 
+	image.src = 'https://avatars.githubusercontent.com/u/25522783';  
+	image.onload = function() {
+		target_image = image;
+	};      
       }
 
       function onRequestSessionError(ex) {
